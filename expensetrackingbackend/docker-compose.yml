@@ -1,0 +1,38 @@
+services: 
+  db:
+    container_name: postgres-spring-boot
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: expensetrackingdb
+      POSTGRES_PASSWORD: password123
+      PGDATA: /data/postgres
+    volumes:
+      - db:/data/postgres
+    ports:
+      - "5332:5432"
+    networks:
+      - backend-network
+    restart: unless-stopped
+  backend:
+    container_name: spring-boot-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/expensetrackingdb
+      - SPRING_DATASOURCE_USERNAME=expensetrackingdb
+      - SPRING_DATASOURCE_PASSWORD=password123
+    ports:
+      - "8080:8080"
+    networks:
+      - backend-network
+    restart: unless-stopped
+    
+networks:
+  backend-network:
+    driver: bridge
+
+volumes:
+  db:
