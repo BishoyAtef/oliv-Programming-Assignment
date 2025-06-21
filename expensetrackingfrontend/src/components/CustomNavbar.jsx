@@ -22,12 +22,6 @@ const CustomNavbar = () => {
                 </span>
             </Link>
 
-            {/* <div className="hidden md:flex space-x-4">
-                <NavLink to="/" className={linkClass}>
-                Back
-                </NavLink>
-            </div> */}
-
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="text-white md:hidden"

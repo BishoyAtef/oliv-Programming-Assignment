@@ -1,6 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, LabelList, Label, ResponsiveContainer } from "recharts";
 import axios from "axios";
+import CustomButton from "./CutomButton";
+import CenterLabel from "./CentralLabel";
+import CustomCentralLabel from "./CustomCentralLable";
 
 const flattenTree = (node) => {
   if (!node.children || node.children.length === 0) {
@@ -26,103 +29,32 @@ const flattenTree = (node) => {
   return childrenData;
 };
 
-const CenterLabel = ({ viewBox, total }) => {
-  const { cx, cy } = viewBox;
-  const totalText = `${total}K`;
-  const textRef = useRef(null);
-  const [textWidth, setTextWidth] = useState(0);
-
-  useEffect(() => {
-    if (textRef.current) {
-      const bbox = textRef.current.getBBox();
-      setTextWidth(bbox.width);
-    }
-  }, [total]);
-
-  return (
-    <g>
-      <text  
-        x={cx - (textWidth / 2)} 
-        y={cy - 30} 
-        textAnchor="start" 
-        fill="gray"
-        fontSize="18"
-      >
-        EGP
-      </text>
-      <text 
-        ref={textRef}
-        x={cx}
-        y={cy + 25}
-        textAnchor="middle"
-        fill="black"
-        fontSize="48"
-        fontWeight="bold"
-      >
-        {totalText}
-      </text>
-    </g>
-  );
-};
-
-const CenteredCustomLabel = (props) => {
-  const { cx, cy, midAngle, innerRadius, outerRadius, name, color } = props;
-  const RADIAN = Math.PI / 180;
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  const boxWidth = name.length * 8 + 16;
-  const boxHeight = 24;
-  const cornerRadius = 8;
-
-  return (
-    <g style={{ outline: 'none' }}>
-      <rect
-        x={x - boxWidth/2}
-        y={y - boxHeight/2}
-        rx={cornerRadius}
-        ry={cornerRadius}
-        width={boxWidth}
-        height={boxHeight}
-        fill={color}
-        strokeWidth={1.5}
-      />
-      <text
-        x={x}
-        y={y}
-        fill="gray"
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fontSize={14}
-        fontWeight="bold"
-      >
-        {name}
-      </text>
-    </g>
-  );
-};
-
-const ExpenseDonutChart = () => {
+const CustomPieChart = () => {
   const [navigationPath, setNavigationPath] = useState([]);
   const [data, setData] = useState([]);
+  const [isFetching, setIsFetching] = useState(false);
+  const apiUrl = "/api/api/v1/expense-tree/latest"
 
+  const fetchData = async () => {
+    try {
+      setIsFetching(true);
+      const response = await axios.get(apiUrl);
+      const root = response.data;
+      const flattened = flattenTree(root).map((item, index) => ({
+        ...item,
+        color: `hsl(${index * 37 % 360}, 60%, 60%)`
+      }));
+      const total = flattened.reduce((acc, item) => acc + item.value, 0);
+      setData(flattened);
+      setNavigationPath([{ name: root.tag, children: flattened, value: total }]);
+    } catch (error) {
+      console.error("Failed to fetch data:", error);
+    } finally {
+      setIsFetching(false);
+    }
+  };
+  
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("http://localhost:8080/api/v1/expenses/tree/latest-tree");
-        const root = response.data;
-        const flattened = flattenTree(root).map((item, index) => ({
-          ...item,
-          color: `hsl(${index * 37 % 360}, 60%, 60%)`
-        }));
-        const total = flattened.reduce((acc, item) => acc + item.value, 0);
-        setData(flattened);
-        setNavigationPath([{ name: root.tag, children: flattened, value: total }]);
-      } catch (error) {
-        console.error("Failed to fetch data:", error);
-      }
-    };
     fetchData();
   }, []);
 
@@ -150,8 +82,14 @@ const ExpenseDonutChart = () => {
   };
 
   return (
-    <div className="w-full flex flex-col items-center">
-      <div style={{ width: '100%', height: '600px' }}>
+    <div className="w-full flex flex-col items-center space-y-7">
+      <div style={{ width: '100%', height: '600px'}}>
+        <CustomButton 
+          className="mt-6 text-center bg-gray-200 hover:bg-gray-300 font-bold text-gray-800 px-3 py-1 rounded-md text-sm"
+          onSuccess={fetchData}
+          label={isFetching? "Refreshing..." : "Refresh Chart"}
+          disabled={isFetching}
+        />
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -164,7 +102,7 @@ const ExpenseDonutChart = () => {
               paddingAngle={2}
               stroke="none"
               labelLine={false}
-              label={<CenteredCustomLabel />} 
+              label={<CustomCentralLabel />} 
               onClick={handleClick}
               style={{ outline: 'none' }}
             >
@@ -236,4 +174,4 @@ const ExpenseDonutChart = () => {
   );
 };
 
-export default ExpenseDonutChart;
+export default CustomPieChart;
