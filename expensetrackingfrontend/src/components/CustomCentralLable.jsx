@@ -4,11 +4,9 @@ const CustomCentralLabel = (props) => {
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
   const boxWidth = name.length * 8 + 16;
   const boxHeight = 24;
   const cornerRadius = 8;
-
   return (
     <g style={{ outline: 'none' }}>
       <rect
@@ -30,7 +28,7 @@ const CustomCentralLabel = (props) => {
         fontSize={14}
         fontWeight="bold"
       >
-        {name}
+        {name.slice(1)}
       </text>
     </g>
   );

@@ -1,22 +1,11 @@
-import { useEffect, useRef, useState } from "react";
 
 const CenterLabel = ({ viewBox, total }) => {
   const { cx, cy } = viewBox;
-  const totalText = `${total}K`;
-  const textRef = useRef(null);
-  const [textWidth, setTextWidth] = useState(0);
-
-  useEffect(() => {
-    if (textRef.current) {
-      const bbox = textRef.current.getBBox();
-      setTextWidth(bbox.width);
-    }
-  }, [total]);
-
+  const value = `${total/1000}K`
   return (
     <g>
       <text  
-        x={cx - (textWidth / 2)} 
+        x={cx - 75} 
         y={cy - 30} 
         textAnchor="start" 
         fill="gray"
@@ -25,15 +14,14 @@ const CenterLabel = ({ viewBox, total }) => {
         EGP
       </text>
       <text 
-        ref={textRef}
-        x={cx}
+        x={cx - 75}
         y={cy + 25}
-        textAnchor="middle"
+        textAnchor="start"
         fill="black"
         fontSize="48"
         fontWeight="bold"
       >
-        {totalText}
+        {value}
       </text>
     </g>
   );

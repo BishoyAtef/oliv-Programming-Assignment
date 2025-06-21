@@ -10,7 +10,7 @@ const InputBox = () => {
 
     const validateLine = (line) => {
         const trimmed = line.trim();
-        const amountPattern = /^\d+(?:[.,]\d+)?\s+.+$/;
+        const amountPattern = /^(?!0+(?:[.,]0+)?$)(?=0*[1-9]|0*\d*[.,]\d*[1-9])\d+(?:[.,]\d+)?\s+.+$/;
         return amountPattern.test(trimmed);
     };
 
@@ -22,8 +22,7 @@ const InputBox = () => {
         const apiUrl = "/api/api/v1/expense/";
 
         trimmedLines.forEach((line, idx) => {
-            if (line === "") return; // Ignore empty lines
-
+            if (line === "") return;
             if (validateLine(line)) {
             validLines.push(line);
             } else {

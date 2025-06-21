@@ -9,14 +9,12 @@ const flattenTree = (node) => {
   if (!node.children || node.children.length === 0) {
     return [{ name: node.tag, value: node.sum, amount: node.amount || 0, children: [] }];
   }
-
   const childrenData = node.children.map((child) => ({
     name: child.tag,
     value: child.sum,
     children: child.children || [],
     amount: child.amount || 0
   }));
-
   if (node.amount && node.amount > 0) {
     childrenData.push({
       name: "#other",
@@ -25,16 +23,15 @@ const flattenTree = (node) => {
       children: []
     });
   }
-
   return childrenData;
 };
 
-const CustomPieChart = () => {
+const CustomPieChart = ({timestamp=null}) => {
   const [navigationPath, setNavigationPath] = useState([]);
   const [data, setData] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
-  const apiUrl = "/api/api/v1/expense-tree/latest"
-
+  const apiUrl = timestamp==null ? "/api/api/v1/expense-tree/latest" : `/api/api/v1/expense-tree/by-timestamp?value=${timestamp}`;
+  console.log(timestamp);
   const fetchData = async () => {
     try {
       setIsFetching(true);
@@ -129,7 +126,7 @@ const CustomPieChart = () => {
               <LabelList 
                 dataKey="value" 
                 position="inside" 
-                formatter={(value) => `${value}K`}
+                formatter={(value) => `${value/1000}K`}
                 style={{ 
                   fill: "gray",
                   fontSize: 18, 
@@ -142,11 +139,10 @@ const CustomPieChart = () => {
           </PieChart>
         </ResponsiveContainer>
       </div>
-
       {currentNode && currentNode.children && (
         <div className="mt-6 rounded-2xl p-6 w-[90%] bg-white shadow-xl border border-gray-200">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800">Breakdown of {currentNode.name}</h2>
+            <h2 className="text-xl font-bold text-gray-800">Breakdown of {currentNode.name.slice(1)}</h2>
             {navigationPath.length > 1 && (
               <button
                 onClick={handleBack}
@@ -163,7 +159,7 @@ const CustomPieChart = () => {
                 onClick={() => handleClick(null, i)}
                 className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 p-3 rounded-xl transition-all duration-200"
               >
-                <div className="font-semibold">{child.name}</div>
+                <div className="font-semibold">{child.name.slice(1)}</div>
                 <div>{child.value} EGP</div>
               </li>
             ))}
