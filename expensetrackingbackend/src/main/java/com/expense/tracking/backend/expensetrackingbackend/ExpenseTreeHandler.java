@@ -4,14 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
+
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/v1/expenses/tree")
+@RequestMapping("api/v1/expense-tree")
 public class ExpenseTreeHandler {
     private final ExpenseRepository expenseRepository;
 
@@ -46,9 +47,18 @@ public class ExpenseTreeHandler {
         return ExpenseParser.parseToJsonTree(lines);
     }
 
-    @GetMapping("/latest-tree")
+    @GetMapping("/latest")
     public Map<String, Object> getLatestMessageExpensesAsTree() {
         List<Expense> expenses = expenseRepository.findLatestMessageExpenses();
+        String[] lines = expenses.stream().map(Expense::getExpense).toArray(String[]::new);
+        return ExpenseParser.parseToJsonTree(lines);
+    }
+
+    @GetMapping("/by-date-range")
+    public Map<String, Object> getExpensesByDateRange(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        List<Expense> expenses = expenseRepository.findByMsgTimestampBetween(start, end);
         String[] lines = expenses.stream().map(Expense::getExpense).toArray(String[]::new);
         return ExpenseParser.parseToJsonTree(lines);
     }

@@ -3,16 +3,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
+
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("api/v1/expenses")
+@RequestMapping("api/v1/expense")
 public class ExpenseHandler {
     private final ExpenseRepository expenseRepository;
 
@@ -58,4 +59,12 @@ public class ExpenseHandler {
     public List<Expense> getByTimestamp(@RequestParam("value") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime value) {
         return expenseRepository.findByMsgTimestamp(value);
     }
+
+    @GetMapping("/by-date-range")
+    public List<Expense> getExpensesByDateRange(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+
+        return expenseRepository.findByMsgTimestampBetween(start, end);
+    }   
 }

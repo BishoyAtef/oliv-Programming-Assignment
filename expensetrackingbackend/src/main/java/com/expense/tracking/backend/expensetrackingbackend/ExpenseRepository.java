@@ -13,4 +13,6 @@ public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
     List<Expense> findLatestMessageExpenses();
 
     List<Expense> findByMsgTimestamp(LocalDateTime msgTimestamp);
+    
+    List<Expense> findByMsgTimestampBetween(LocalDateTime start, LocalDateTime end);
 }
