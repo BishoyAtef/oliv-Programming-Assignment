@@ -1,60 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { PieChart, Pie, Cell, LabelList, Label, ResponsiveContainer } from "recharts";
-import axios from "axios";
-import CustomButton from "./CutomButton";
 import CenterLabel from "./CentralLabel";
 import CustomCentralLabel from "./CustomCentralLable";
+import flattenTree from "../utils/FlattenTree";
 
-const flattenTree = (node) => {
-  if (!node.children || node.children.length === 0) {
-    return [{ name: node.tag, value: node.sum, amount: node.amount || 0, children: [] }];
-  }
-  const childrenData = node.children.map((child) => ({
-    name: child.tag,
-    value: child.sum,
-    children: child.children || [],
-    amount: child.amount || 0
-  }));
-  if (node.amount && node.amount > 0) {
-    childrenData.push({
-      name: "#other",
-      value: node.amount,
-      amount: node.amount,
-      children: []
-    });
-  }
-  return childrenData;
-};
-
-const CustomPieChart = ({timestamp=null}) => {
-  const [navigationPath, setNavigationPath] = useState([]);
-  const [data, setData] = useState([]);
-  const [isFetching, setIsFetching] = useState(false);
-  const apiUrl = timestamp==null ? "/api/api/v1/expense-tree/latest" : `/api/api/v1/expense-tree/by-timestamp?value=${timestamp}`;
-  console.log(timestamp);
-  const fetchData = async () => {
-    try {
-      setIsFetching(true);
-      const response = await axios.get(apiUrl);
-      const root = response.data;
-      const flattened = flattenTree(root).map((item, index) => ({
-        ...item,
-        color: `hsl(${index * 37 % 360}, 60%, 60%)`
-      }));
-      const total = flattened.reduce((acc, item) => acc + item.value, 0);
-      setData(flattened);
-      setNavigationPath([{ name: root.tag, children: flattened, value: total }]);
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
-    } finally {
-      setIsFetching(false);
-    }
-  };
-  
-  useEffect(() => {
-    fetchData();
-  }, []);
-
+const CustomPieChart = ({pieChartNavigationPath}) => {
+  const [navigationPath, setNavigationPath] = useState(pieChartNavigationPath);
   const currentNode = navigationPath[navigationPath.length - 1];
 
   const handleClick = (_, index) => {
@@ -78,15 +29,13 @@ const CustomPieChart = ({timestamp=null}) => {
     }
   };
 
+  useEffect(() => {
+    setNavigationPath(pieChartNavigationPath);
+  }, [pieChartNavigationPath]);
+
   return (
     <div className="w-full flex flex-col items-center space-y-7">
       <div style={{ width: '100%', height: '600px'}}>
-        <CustomButton 
-          className="mt-6 text-center bg-gray-200 hover:bg-gray-300 font-bold text-gray-800 px-3 py-1 rounded-md text-sm"
-          onSuccess={fetchData}
-          label={isFetching? "Refreshing..." : "Refresh Chart"}
-          disabled={isFetching}
-        />
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -140,7 +89,7 @@ const CustomPieChart = ({timestamp=null}) => {
         </ResponsiveContainer>
       </div>
       {currentNode && currentNode.children && (
-        <div className="mt-6 rounded-2xl p-6 w-[90%] bg-white shadow-xl border border-gray-200">
+        <div className="mt-6 rounded-2xl p-6 w-[90%] bg-white shadow-xl border border-gray-200 mb-10">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-gray-800">Breakdown of {currentNode.name.slice(1)}</h2>
             {navigationPath.length > 1 && (

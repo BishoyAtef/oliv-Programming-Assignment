@@ -41,7 +41,7 @@ const InputBox = () => {
             setIsLoading(true);
             await axios.post(apiUrl, payload);
             setResponseMessage("Expenses submitted successfully.");
-            setInputText("");
+            //setInputText("");
         } catch (error) {
             setResponseMessage("Failed to submit expenses.");
             console.error(error);
@@ -73,3 +73,4 @@ const InputBox = () => {
 };
 
 export default InputBox;
+
