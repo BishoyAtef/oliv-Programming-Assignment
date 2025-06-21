@@ -67,7 +67,6 @@ const CustomPieChart = ({pieChartNavigationPath}) => {
               labelLine={false}
               stroke="none"
               onClick={handleClick}
-              style={{ outline: 'none' }}
             >
               {(currentNode?.children || []).map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
