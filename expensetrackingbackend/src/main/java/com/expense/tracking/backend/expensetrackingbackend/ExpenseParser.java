@@ -1,156 +1,13 @@
 package com.expense.tracking.backend.expensetrackingbackend;
-import java.util.*;
-import java.util.regex.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ExpenseParser {
-    //================================================================================================
-    //second best still has a corner case in root node if some expenses have zero hashtags 
-    // static class TreeNode {
-    //     String tag;
-    //     int amount;
-    //     int sum;
-    //     Map<String, TreeNode> children = new LinkedHashMap<>();
-
-    //     TreeNode(String tag) {
-    //         this.tag = tag;
-    //     }
-
-    //     void addChild(TreeNode child) {
-    //         children.put(child.tag, child);
-    //     }
-
-    //     void addExpense(List<String> tags, int amount) {
-    //         TreeNode current = this;
-    //         for (String tag : tags) {
-    //             current = current.children.computeIfAbsent(tag, TreeNode::new);
-    //         }
-    //         current.amount += amount;
-    //     }
-
-    //     void computeSum() {
-    //         sum = amount;
-    //         for (TreeNode child : children.values()) {
-    //             child.computeSum();
-    //             sum += child.sum;
-    //         }
-    //     }
-
-    //     Map<String, Object> toMap() {
-    //         Map<String, Object> result = new LinkedHashMap<>();
-    //         result.put("tag", tag);
-    //         result.put("amount", amount);
-    //         result.put("sum", sum);
-    //         if (!children.isEmpty()) {
-    //             List<Map<String, Object>> childrenList = new ArrayList<>();
-    //             for (TreeNode child : children.values()) {
-    //                 childrenList.add(child.toMap());
-    //             }
-    //             result.put("children", childrenList);
-    //         }
-    //         return result;
-    //     }
-    // }
-
-    // public static Map<String, Object> parseToJsonTree(String[] input) {
-    //     TreeNode root = new TreeNode("#total");
-    //     List<ExpenseEntry> entries = new ArrayList<>();
-
-    //     for (String expense : input) {
-    //         int amount = parseAmount(expense);
-    //         List<String> tags = extractHashtags(expense);
-    //         if (!tags.isEmpty()) {
-    //             entries.add(new ExpenseEntry(tags, amount));
-    //         }
-    //     }
-
-    //     while (!entries.isEmpty()) {
-    //         // Aggregate tag values
-    //         Map<String, Integer> tagSums = new LinkedHashMap<>();
-    //         Map<String, Integer> tagFirstSeenIndex = new HashMap<>();
-
-    //         for (int i = 0; i < entries.size(); i++) {
-    //             ExpenseEntry entry = entries.get(i);
-    //             for (int j = 0; j < entry.tags.size(); j++) {
-    //                 String tag = entry.tags.get(j);
-    //                 tagSums.put(tag, tagSums.getOrDefault(tag, 0) + entry.amount);
-    //                 tagFirstSeenIndex.putIfAbsent(tag, i * 100 + j); // combine entry order and position
-    //             }
-    //         }
-
-    //         // Sort by aggregate value, then by first seen order
-    //         List<String> sortedTags = new ArrayList<>(tagSums.keySet());
-    //         sortedTags.sort((a, b) -> {
-    //             int cmp = Integer.compare(tagSums.get(b), tagSums.get(a));
-    //             if (cmp == 0) {
-    //                 return Integer.compare(tagFirstSeenIndex.get(a), tagFirstSeenIndex.get(b));
-    //             }
-    //             return cmp;
-    //         });
-
-    //         if (sortedTags.isEmpty()) break;
-
-    //         String selectedTag = sortedTags.get(0);
-
-    //         List<ExpenseEntry> matched = new ArrayList<>();
-    //         List<ExpenseEntry> remaining = new ArrayList<>();
-
-    //         for (ExpenseEntry entry : entries) {
-    //             if (entry.tags.contains(selectedTag)) {
-    //                 List<String> newTags = new ArrayList<>(entry.tags);
-    //                 newTags.remove(selectedTag);
-    //                 matched.add(new ExpenseEntry(newTags, entry.amount));
-    //             } else {
-    //                 remaining.add(entry);
-    //             }
-    //         }
-
-    //         TreeNode child = new TreeNode(selectedTag);
-    //         for (ExpenseEntry e : matched) {
-    //             if (!e.tags.isEmpty()) {
-    //                 child.addExpense(e.tags, e.amount);
-    //             } else {
-    //                 child.amount += e.amount;
-    //             }
-    //         }
-    //         root.addChild(child);
-
-    //         entries = remaining;
-    //     }
-
-    //     root.computeSum();
-    //     return root.toMap();
-    // }
-
-    // static class ExpenseEntry {
-    //     List<String> tags;
-    //     int amount;
-
-    //     ExpenseEntry(List<String> tags, int amount) {
-    //         this.tags = tags;
-    //         this.amount = amount;
-    //     }
-    // }
-
-    // static int parseAmount(String line) {
-    //     Matcher matcher = Pattern.compile("^\\s*([\\d,]+)").matcher(line);
-    //     if (matcher.find()) {
-    //         String number = matcher.group(1).replace(",", "");
-    //         return Integer.parseInt(number);
-    //     }
-    //     return 0;
-    // }
-
-    // static List<String> extractHashtags(String line) {
-    //     List<String> result = new ArrayList<>();
-    //     Matcher matcher = Pattern.compile("#\\w+").matcher(line);
-    //     while (matcher.find()) {
-    //         result.add(matcher.group());
-    //     }
-    //     return result;
-    // }
-    //===============================================================================================================
-
-    // Best so far 
     static class TreeNode {
         String tag;
         int amount;
@@ -167,8 +24,8 @@ public class ExpenseParser {
 
         void addExpense(List<String> tags, int amount) {
             TreeNode current = this;
-            for (String tag : tags) {
-                current = current.children.computeIfAbsent(tag, TreeNode::new);
+            for (String singleTag : tags) {
+                current = current.children.computeIfAbsent(singleTag, TreeNode::new);
             }
             current.amount += amount;
         }
