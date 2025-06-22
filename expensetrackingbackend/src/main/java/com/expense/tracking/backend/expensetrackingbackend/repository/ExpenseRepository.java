@@ -1,9 +1,11 @@
-package com.expense.tracking.backend.expensetrackingbackend;
+package com.expense.tracking.backend.expensetrackingbackend.repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+
+import com.expense.tracking.backend.expensetrackingbackend.model.Expense;
 
 public interface ExpenseRepository extends JpaRepository<Expense, Integer> {
     @Query("SELECT DISTINCT e.msgTimestamp FROM Expense e ORDER BY e.msgTimestamp DESC")

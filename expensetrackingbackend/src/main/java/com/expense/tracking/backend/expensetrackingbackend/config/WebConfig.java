@@ -1,4 +1,4 @@
-package com.expense.tracking.backend.expensetrackingbackend;
+package com.expense.tracking.backend.expensetrackingbackend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

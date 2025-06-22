@@ -1,4 +1,4 @@
-package com.expense.tracking.backend.expensetrackingbackend;
+package com.expense.tracking.backend.expensetrackingbackend.service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -7,8 +7,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ExpenseParser {
-    static class TreeNode {
+import org.springframework.stereotype.Service;
+
+@Service
+public class ExpenseParserService {
+    class TreeNode {
         String tag;
         int amount;
         int sum;
@@ -54,7 +57,7 @@ public class ExpenseParser {
         }
     }
 
-    public static Map<String, Object> parseToJsonTree(String[] input) {
+    public Map<String, Object> parseToJsonTree(String[] input) {
         TreeNode root = new TreeNode("#total");
         List<ExpenseEntry> entries = new ArrayList<>();
         int untaggedTotal = 0;
@@ -130,7 +133,7 @@ public class ExpenseParser {
         return root.toMap();
     }
 
-    static class ExpenseEntry {
+    class ExpenseEntry {
         List<String> tags;
         int amount;
 
@@ -140,7 +143,7 @@ public class ExpenseParser {
         }
     }
 
-    static int parseAmount(String line) {
+    public int parseAmount(String line) {
         Matcher matcher = Pattern.compile("^\\s*([\\d,]+)").matcher(line);
         if (matcher.find()) {
             String number = matcher.group(1).replace(",", "");
@@ -149,7 +152,7 @@ public class ExpenseParser {
         return 0;
     }
 
-    static List<String> extractHashtags(String line) {
+    public List<String> extractHashtags(String line) {
         List<String> result = new ArrayList<>();
         Matcher matcher = Pattern.compile("#\\w+").matcher(line);
         while (matcher.find()) {

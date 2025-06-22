@@ -1,4 +1,4 @@
-package com.expense.tracking.backend.expensetrackingbackend;
+package com.expense.tracking.backend.expensetrackingbackend.controller;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,13 +11,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.expense.tracking.backend.expensetrackingbackend.model.Expense;
+import com.expense.tracking.backend.expensetrackingbackend.repository.ExpenseRepository;
+import com.expense.tracking.backend.expensetrackingbackend.service.ExpenseParserService;
+
 @RestController
 @RequestMapping("api/v1/expense-tree")
 public class ExpenseTreeHandler {
     private final ExpenseRepository expenseRepository;
+    private final ExpenseParserService expenseParserService;
 
-    public ExpenseTreeHandler(ExpenseRepository expenseRepository) {
+    public ExpenseTreeHandler(ExpenseRepository expenseRepository, ExpenseParserService expenseParserService) {
         this.expenseRepository = expenseRepository;
+        this.expenseParserService = expenseParserService;
     }
 
     @GetMapping("/")
@@ -28,7 +34,7 @@ public class ExpenseTreeHandler {
         List<Map<String, Object>> result = new ArrayList<>();
         for (Map.Entry<LocalDateTime, List<Expense>> entry : grouped.entrySet()) {
             String[] lines = entry.getValue().stream().map(exp -> exp.getExpense()).toArray(String[]::new);
-            Map<String, Object> tree = ExpenseParser.parseToJsonTree(lines);
+            Map<String, Object> tree = this.expenseParserService.parseToJsonTree(lines);
             tree.put("timestamp", entry.getKey().toString());
             result.add(tree);
         }
@@ -44,14 +50,14 @@ public class ExpenseTreeHandler {
     public Map<String, Object> getByTimestamp(@RequestParam("value") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime value) {
         List<Expense> expenses = expenseRepository.findByMsgTimestamp(value);
         String[] lines = expenses.stream().map(Expense::getExpense).toArray(String[]::new);
-        return ExpenseParser.parseToJsonTree(lines);
+        return this.expenseParserService.parseToJsonTree(lines);
     }
 
     @GetMapping("/latest")
     public Map<String, Object> getLatestMessageExpensesAsTree() {
         List<Expense> expenses = expenseRepository.findLatestMessageExpenses();
         String[] lines = expenses.stream().map(Expense::getExpense).toArray(String[]::new);
-        return ExpenseParser.parseToJsonTree(lines);
+        return this.expenseParserService.parseToJsonTree(lines);
     }
 
     @GetMapping("/by-date-range")
@@ -60,6 +66,6 @@ public class ExpenseTreeHandler {
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         List<Expense> expenses = expenseRepository.findByMsgTimestampBetween(start, end);
         String[] lines = expenses.stream().map(Expense::getExpense).toArray(String[]::new);
-        return ExpenseParser.parseToJsonTree(lines);
+        return this.expenseParserService.parseToJsonTree(lines);
     }
 }

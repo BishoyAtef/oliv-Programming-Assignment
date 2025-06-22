@@ -1,9 +1,17 @@
-package com.expense.tracking.backend.expensetrackingbackend;
-import java.util.*;
-import java.util.regex.*;
+package com.expense.tracking.backend.expensetrackingbackend.service;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class TwoHashtagsExpenseParser {
-    static class TreeNode {
+import org.springframework.stereotype.Service;
+
+@Service
+public class TwoHashtagsExpenseParserService {
+    class TreeNode {
         String tag;
         int amount;
         Map<String, TreeNode> children = new LinkedHashMap<>();
@@ -33,7 +41,7 @@ public class TwoHashtagsExpenseParser {
         }
     }
 
-    public static Map<String, Object> parseToJsonTree(String[] input) {
+    public Map<String, Object> parseToJsonTree(String[] input) {
         int total = 0;
         Map<String, Map<String, Integer>> grouped = new HashMap<>();
 
@@ -88,7 +96,7 @@ public class TwoHashtagsExpenseParser {
         return root.toMap();
     }
 
-    static int parseAmount(String line) {
+    int parseAmount(String line) {
         Matcher matcher = Pattern.compile("^\\s*([\\d,]+)").matcher(line);
         if (matcher.find()) {
             String number = matcher.group(1).replace(",", "");
@@ -97,7 +105,7 @@ public class TwoHashtagsExpenseParser {
         return 0;
     }
 
-    static List<String> extractHashtags(String line) {
+    List<String> extractHashtags(String line) {
         List<String> result = new ArrayList<>();
         Matcher matcher = Pattern.compile("#\\w+").matcher(line);
         while (matcher.find()) {
