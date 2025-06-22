@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,8 +29,11 @@ import com.expense.tracking.backend.expensetrackingbackend.repository.MessageRep
 import com.expense.tracking.backend.expensetrackingbackend.repository.HashtagRepository;
 import com.expense.tracking.backend.expensetrackingbackend.service.ExpenseParserService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("api/v1/expense")
+@Validated
 public class MessageHandler {
     private final MessageRepository messageRepository;
     private final HashtagRepository hashtagRepository;
@@ -77,7 +81,7 @@ public class MessageHandler {
     }
 
     @PostMapping("/")
-    public ResponseEntity<?> addExpenseMessage(@RequestBody List<ExpenseRequestDto> requests) {
+    public ResponseEntity<?> addExpenseMessage(@RequestBody @Valid List<ExpenseRequestDto> requests) {
         try {
             if (requests == null || requests.isEmpty()) {
                 return ResponseEntity.badRequest().body("Expense list is empty or null.");
@@ -103,7 +107,7 @@ public class MessageHandler {
                 expenses.add(expense);
             }
             message.setExpenses(expenses);
-            messageRepository.save(message); // cascade saves expenses
+            messageRepository.save(message);
             return ResponseEntity.ok("Expenses saved successfully.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to save expenses: " + e.getMessage());
