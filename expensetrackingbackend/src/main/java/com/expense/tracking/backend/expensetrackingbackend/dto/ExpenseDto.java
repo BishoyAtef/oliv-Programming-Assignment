@@ -5,12 +5,12 @@ import java.util.List;
 public class ExpenseDto {
     private int amount;
     private String description;
-    private List<String> tags;
+    private List<HashtagDto> tags;
     private LocalDateTime timestamp;
 
     public ExpenseDto() {}
 
-    public ExpenseDto(int amount, String description, List<String> tags, LocalDateTime timestamp) {
+    public ExpenseDto(int amount, String description, List<HashtagDto> tags, LocalDateTime timestamp) {
         this.amount = amount;
         this.description = description;
         this.tags = tags;
@@ -33,11 +33,11 @@ public class ExpenseDto {
         this.description = description;
     }
 
-    public List<String> getTags() {
+    public List<HashtagDto> getTags() {
         return tags;
     }
 
-    public void setTags(List<String> tags) {
+    public void setTags(List<HashtagDto> tags) {
         this.tags = tags;
     }
 

@@ -1,86 +1,82 @@
 package com.expense.tracking.backend.expensetrackingbackend.model;
-import java.time.LocalDateTime;
+
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Objects;
 
-import jakarta.persistence.Column;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 
 @Entity
-@Table(name = "expenses")
 public class Expense {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
-    @Column(name = "expense")
-    private String expense;
+    private String description;
+    private int amount;
 
-    @Column(name = "msg_timestamp")
-    private LocalDateTime msgTimestamp;
+    @ManyToOne
+    @JoinColumn(name = "message_id")
+    private Message message;
 
-    public Expense() {
+    @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    @JoinTable(
+        name = "expense_hashtags",
+        joinColumns = @JoinColumn(name = "expense_id"),
+        inverseJoinColumns = @JoinColumn(name = "hashtag_id")
+    )
+    private Set<Hashtag> hashtags = new HashSet<>();
+
+    public Long getId() {
+        return id;
     }
 
-    public Expense(String expense) {
-        this.expense = expense;
+    public String getDescription() {
+        return description;
     }
 
-    public Integer getId() {
-        return this.id;
+    public int getAmount() {
+        return amount;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public Message getMessage() {
+        return message;
     }
 
-    public String getExpense() {
-        return this.expense;
+    public Set<Hashtag> getHashtags() {
+        return hashtags;
     }
 
-    public void setExpense(String expense) {
-        this.expense = expense;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
-    public LocalDateTime getMsgTimestamp() {
-        return this.msgTimestamp;
+    public void setAmount(int amount) {
+        this.amount = amount;
     }
 
-    public void setMsgTimestamp(LocalDateTime msgTimestamp) {
-        this.msgTimestamp = msgTimestamp;
+    public void setMessage(Message message) {
+        this.message = message;
     }
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 59 * hash + Objects.hashCode(this.id);
-        hash = 59 * hash + Objects.hashCode(this.expense);
-        hash = 59 * hash + Objects.hashCode(this.msgTimestamp);
-        return hash;
+        return Objects.hash(id);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Expense other = (Expense) obj;
-        if(!Objects.equals(this.id, other.id)) {
-            return false;
-        }
-        if(!Objects.equals(this.msgTimestamp, other.msgTimestamp)) {
-            return false;
-        }
-        return Objects.equals(this.expense, other.expense);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Expense expense = (Expense) o;
+        return Objects.equals(id, expense.id);
     }
 }

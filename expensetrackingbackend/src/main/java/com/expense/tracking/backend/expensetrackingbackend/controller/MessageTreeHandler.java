@@ -1,0 +1,102 @@
+package com.expense.tracking.backend.expensetrackingbackend.controller;
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.expense.tracking.backend.expensetrackingbackend.dto.MessageTreeDto;
+import com.expense.tracking.backend.expensetrackingbackend.model.Message;
+import com.expense.tracking.backend.expensetrackingbackend.repository.ExpenseRepository;
+import com.expense.tracking.backend.expensetrackingbackend.repository.HashtagRepository;
+import com.expense.tracking.backend.expensetrackingbackend.repository.MessageRepository;
+import com.expense.tracking.backend.expensetrackingbackend.service.ExpenseParserService;
+
+@RestController
+@RequestMapping("api/v1/expense-tree")
+public class MessageTreeHandler {
+    private final MessageRepository messageRepository;
+    private final ExpenseParserService expenseParserService;
+
+    public MessageTreeHandler(ExpenseRepository expenseRepository, MessageRepository messageRepository, 
+                                HashtagRepository hashtagRepository, ExpenseParserService expenseParserService) {
+        this.messageRepository = messageRepository;
+        this.expenseParserService = expenseParserService;
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<List<MessageTreeDto>> getAllMessageTrees() {
+        List<Message> messages = messageRepository.findAll();
+        if (messages.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        List<MessageTreeDto> messageTreeDtoList = messages.stream().map(message -> this.expenseParserService.parseToTreeDto(message.getExpenses())).toList(); 
+        return ResponseEntity.ok(messageTreeDtoList);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<MessageTreeDto> getMessageTreeById(@PathVariable Long id) {
+        Optional<Message> optionalMessage = messageRepository.findById(id);
+        if (optionalMessage.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        MessageTreeDto messageTreeDto = this.expenseParserService.parseToTreeDto(optionalMessage.get().getExpenses()); 
+        return ResponseEntity.ok(messageTreeDto);
+    }
+
+    @GetMapping("/msgs_timestamps") // added for convenience
+    public ResponseEntity<List<LocalDateTime>> getAllMessageTreesTimestamps() {
+        List<LocalDateTime> timestamps = messageRepository.findAll().stream()
+            .map(Message::getTimestamp)
+            .sorted(Comparator.reverseOrder())
+            .toList();
+        if (timestamps.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(timestamps);
+    }
+
+    @GetMapping("/by-timestamp")
+    public ResponseEntity<MessageTreeDto> getMessageTreeByTimestamp(
+                @RequestParam("value") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime timestamp) {
+
+        Optional<Message> optionalMessage = messageRepository.findByTimestamp(timestamp);
+        if (optionalMessage.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        MessageTreeDto messageTreeDto = this.expenseParserService.parseToTreeDto(optionalMessage.get().getExpenses()); 
+        return ResponseEntity.ok(messageTreeDto);
+    }
+
+    @GetMapping("/latest")
+    public ResponseEntity<MessageTreeDto> getLatestMessageTree() {
+        Optional<Message> optionalMessage = messageRepository.findLatestMessage();
+        if (optionalMessage.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        MessageTreeDto messageTreeDto = this.expenseParserService.parseToTreeDto(optionalMessage.get().getExpenses()); 
+        return ResponseEntity.ok(messageTreeDto);
+    }
+
+    @GetMapping("/by-date-range")
+    public ResponseEntity<List<MessageTreeDto>> getMessageTreesByDateRange(
+            @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+
+        List<Message> messages = messageRepository.findByTimestampBetween(start, end);
+        if (messages.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        List<MessageTreeDto> messageTreeDtoList = messages.stream()
+                                                    .map(message -> this.expenseParserService.parseToTreeDto(message.getExpenses()))
+                                                    .toList(); 
+        return ResponseEntity.ok(messageTreeDtoList);
+    }
+}
