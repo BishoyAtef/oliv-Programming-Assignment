@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,7 +36,7 @@ public class MessageTreeHandler {
 
     private ResponseEntity<MessageTreeDto> getResponseFromMessageTreeDto(Optional<Message> optionalMessage) {
         if (optionalMessage.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.noContent().build();
         }
         Message message = optionalMessage.get();
         ExpenseTreeDto expenseTreeDto = this.expenseParserService.parseToTreeDto(message.getExpenses()); 
@@ -44,7 +46,7 @@ public class MessageTreeHandler {
 
     private ResponseEntity<List<MessageTreeDto>> getResponseFromMessageTreeDtoList(List<Message> messages) {
         if (messages.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.noContent().build();
         }
         List<MessageTreeDto> messageTreeDtoList = messages.stream()
                         .map(message -> new MessageTreeDto(message.getId(), message.getTimestamp(), expenseParserService.parseToTreeDto(message.getExpenses())))
@@ -57,7 +59,7 @@ public class MessageTreeHandler {
         List<LocalDateTime> timestamps = messageRepository.findAll().stream()
             .map(Message::getTimestamp).sorted(Comparator.reverseOrder()).toList();
         if (timestamps.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(timestamps);
     }
@@ -91,5 +93,15 @@ public class MessageTreeHandler {
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
 
         return getResponseFromMessageTreeDtoList(messageRepository.findByTimestampBetween(start, end));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteMessage(@PathVariable Long id) {
+        Optional<Message> optionalMessage = messageRepository.findById(id);
+        if (optionalMessage.isPresent()) {
+            messageRepository.deleteById(id);
+            return ResponseEntity.ok("Message with ID " + id + " was deleted successfully.");
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Message with ID " + id + " was not found.");
     }
 }

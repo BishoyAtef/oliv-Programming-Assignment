@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,7 +44,7 @@ public class MessageHandler {
 
     private ResponseEntity<MessageDto> getResponseFromMessageDto(Optional<Message> optionalMessage) {
         if (optionalMessage.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.noContent().build();
         }
         Message msg = optionalMessage.get();
         List<ExpenseDto> expenseDtos = msg.getExpenses().stream()
@@ -58,7 +59,7 @@ public class MessageHandler {
 
     private ResponseEntity<List<MessageDto>> getResponseFromMessageDtoList(List<Message> messages) {
         if (messages.isEmpty()) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.noContent().build();
         }
         List<MessageDto> messageDtoList = messages.stream()
             .sorted(Comparator.comparing(Message::getTimestamp).reversed())
@@ -150,5 +151,15 @@ public class MessageHandler {
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
 
         return getResponseFromMessageDtoList(messageRepository.findByTimestampBetween(start, end));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteMessage(@PathVariable Long id) {
+        Optional<Message> optionalMessage = messageRepository.findById(id);
+        if (optionalMessage.isPresent()) {
+            messageRepository.deleteById(id);
+            return ResponseEntity.ok("Message with ID " + id + " was deleted successfully.");
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Message with ID " + id + " was not found.");
     }
 }

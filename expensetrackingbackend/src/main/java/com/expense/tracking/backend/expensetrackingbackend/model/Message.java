@@ -20,7 +20,7 @@ public class Message {
 
     private LocalDateTime timestamp;
 
-    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Expense> expenses = new ArrayList<>();
 
     public Long getId() {

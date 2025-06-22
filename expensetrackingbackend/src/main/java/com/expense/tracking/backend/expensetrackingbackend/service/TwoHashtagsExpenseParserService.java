@@ -8,10 +8,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
+import com.expense.tracking.backend.expensetrackingbackend.model.Expense;
+import com.expense.tracking.backend.expensetrackingbackend.model.Hashtag;
+import com.expense.tracking.backend.expensetrackingbackend.dto.ExpenseTreeDto;
+
+import java.util.stream.Collectors;
 
 @Service
 public class TwoHashtagsExpenseParserService {
-    class TreeNode {
+
+    static class TreeNode {
         String tag;
         int amount;
         Map<String, TreeNode> children = new LinkedHashMap<>();
@@ -26,33 +32,38 @@ public class TwoHashtagsExpenseParserService {
             children.put(subTag, child);
         }
 
-        Map<String, Object> toMap() {
-            Map<String, Object> result = new LinkedHashMap<>();
-            result.put("tag", tag);
-            result.put("amount", amount);
-            if (!children.isEmpty()) {
-                List<Map<String, Object>> childrenList = new ArrayList<>();
-                for (TreeNode child : children.values()) {
-                    childrenList.add(child.toMap());
-                }
-                result.put("children", childrenList);
+        int computeSum() {
+            int sum = amount;
+            for (TreeNode child : children.values()) {
+                sum += child.computeSum();
             }
-            return result;
+            return sum;
+        }
+
+        ExpenseTreeDto toDto() {
+            List<ExpenseTreeDto> childDtos = children.values().stream()
+                .map(TreeNode::toDto)
+                .collect(Collectors.toList());
+
+            int sum = computeSum();
+
+            return new ExpenseTreeDto(tag, amount, sum, childDtos.isEmpty() ? null : childDtos);
         }
     }
 
-    public Map<String, Object> parseToJsonTree(String[] input) {
+    public ExpenseTreeDto parseToTreeDto(List<Expense> expenses) {
         int total = 0;
         Map<String, Map<String, Integer>> grouped = new HashMap<>();
 
-        for (String line : input) {
-            int amount = parseAmount(line);
+        for (Expense expense : expenses) {
+            int amount = expense.getAmount();
             total += amount;
+            List<String> tags = expense.getHashtags().stream()
+                .map(Hashtag::getName)
+                .toList();
 
-            List<String> tags = extractHashtags(line);
             String primary = "#other";
             String sub = "#other";
-
             if (tags.size() == 1) {
                 primary = tags.get(0);
             } else if (tags.size() >= 2) {
@@ -93,10 +104,10 @@ public class TwoHashtagsExpenseParserService {
             root.children.put(primary, primaryNode);
         }
 
-        return root.toMap();
+        return root.toDto();
     }
 
-    int parseAmount(String line) {
+    public int parseAmount(String line) {
         Matcher matcher = Pattern.compile("^\\s*([\\d,]+)").matcher(line);
         if (matcher.find()) {
             String number = matcher.group(1).replace(",", "");
@@ -105,7 +116,7 @@ public class TwoHashtagsExpenseParserService {
         return 0;
     }
 
-    List<String> extractHashtags(String line) {
+    public List<String> extractHashtags(String line) {
         List<String> result = new ArrayList<>();
         Matcher matcher = Pattern.compile("#\\w+").matcher(line);
         while (matcher.find()) {
@@ -114,4 +125,3 @@ public class TwoHashtagsExpenseParserService {
         return result;
     }
 }
-
