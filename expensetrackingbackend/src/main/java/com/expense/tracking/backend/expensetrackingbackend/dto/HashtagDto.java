@@ -4,7 +4,10 @@ public class HashtagDto {
     private Long id;
     private String name;
 
-    public HashtagDto() {}
+    public HashtagDto() {
+        this.id = null;
+        this.name = null;
+    }
 
     public HashtagDto(Long id, String name) {
         this.id = id;

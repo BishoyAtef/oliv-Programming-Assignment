@@ -1,57 +1,46 @@
 package com.expense.tracking.backend.expensetrackingbackend.dto;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 public class MessageTreeDto {
-    private String tag;
-    private int amount;
-    private int sum;
-    private List<MessageTreeDto> children;
+    private Long id;
+    private LocalDateTime timestamp;
+    private ExpenseTreeDto expenseTreeDto;
 
     public MessageTreeDto() {
-        tag = "";
-        amount = 0;
-        sum = 0;
-        children = null;
+        this.id = null;
+        this.expenseTreeDto = null;
+        this.timestamp = null;
     }
 
-    public MessageTreeDto(String tag, int amount, int sum, List<MessageTreeDto> children) {
-        this.tag = tag;
-        this.amount = amount;
-        this.sum = sum;
-        this.children = children;
+    public MessageTreeDto(long id, LocalDateTime timestamp, ExpenseTreeDto expenseTreeDto) {
+        this.id = id;
+        this.timestamp = timestamp;
+        this.expenseTreeDto = expenseTreeDto;
     }
 
-    public String getTag() {
-        return tag;
+    public Long getId() {
+        return this.id;
     }
 
-    public void setTag(String tag) {
-        this.tag = tag;
+    public ExpenseTreeDto getExpenseTreeDto() {
+        return this.expenseTreeDto;
     }
 
-    public int getAmount() {
-        return amount;
+    public LocalDateTime getTimestamp() {
+        return timestamp;
     }
 
-    public void setAmount(int amount) {
-        this.amount = amount;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public int getSum() {
-        return sum;
+    public void setExpenseTreeDto(ExpenseTreeDto expenseTreeDto) {
+        this.expenseTreeDto = expenseTreeDto;
     }
 
-    public void setSum(int sum) {
-        this.sum = sum;
-    }
-
-    public List<MessageTreeDto> getChildren() {
-        return children;
-    }
-
-    public void setChildren(List<MessageTreeDto> children) {
-        this.children = children;
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
     }
 }
 

@@ -40,6 +40,41 @@ public class MessageHandler {
         this.expenseParserService = expenseParserService;
     }
 
+
+    private ResponseEntity<MessageDto> getResponseFromMessageDto(Optional<Message> optionalMessage) {
+        if (optionalMessage.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Message msg = optionalMessage.get();
+        List<ExpenseDto> expenseDtos = msg.getExpenses().stream()
+            .map(exp -> new ExpenseDto(
+                exp.getAmount(), exp.getDescription(),
+                exp.getHashtags().stream().map(ht -> new HashtagDto(ht.getId(), ht.getName())).toList(),
+                msg.getTimestamp()
+            )).toList();
+        MessageDto dto = new MessageDto(msg.getId(), msg.getTimestamp(), expenseDtos);
+        return ResponseEntity.ok(dto);
+    }
+
+    private ResponseEntity<List<MessageDto>> getResponseFromMessageDtoList(List<Message> messages) {
+        if (messages.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        List<MessageDto> messageDtoList = messages.stream()
+            .sorted(Comparator.comparing(Message::getTimestamp).reversed())
+            .map(msg -> {
+                List<ExpenseDto> expenseDtos = msg.getExpenses().stream()
+                    .map(exp -> new ExpenseDto(
+                        exp.getAmount(), exp.getDescription(),
+                        exp.getHashtags().stream().map(ht -> new HashtagDto(ht.getId(), ht.getName())).toList(),
+                        msg.getTimestamp()
+                    ))
+                    .toList();
+                return new MessageDto(msg.getId(), msg.getTimestamp(), expenseDtos);
+            }).toList();
+        return ResponseEntity.ok(messageDtoList);
+    }
+
     @PostMapping("/")
     public ResponseEntity<?> addExpenseMessage(@RequestBody List<ExpenseRequestDto> requests) {
         try {
@@ -74,61 +109,6 @@ public class MessageHandler {
         }
     }
 
-    @GetMapping("/")
-    public ResponseEntity<List<MessageDto>> getAllMessages() {
-        List<Message> messages = messageRepository.findAll();
-        if (messages.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        List<MessageDto> messageDtoList = messages.stream()
-            .sorted(Comparator.comparing(Message::getTimestamp).reversed())
-            .map(msg -> {
-                List<ExpenseDto> expenseDtos = msg.getExpenses().stream()
-                    .map(exp -> new ExpenseDto(
-                        exp.getAmount(),
-                        exp.getDescription(),
-                        exp.getHashtags().stream()
-                            .map(hashtag -> new HashtagDto(
-                                hashtag.getId(), hashtag.getName()))
-                            .toList(),
-                        msg.getTimestamp()
-                    ))
-                    .toList();
-                return new MessageDto(
-                    msg.getId(),
-                    msg.getTimestamp(),
-                    expenseDtos
-                );
-            })
-            .toList();
-        return ResponseEntity.ok(messageDtoList);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<MessageDto> getMessageById(@PathVariable Long id) {
-        Optional<Message> optionalMessage = messageRepository.findById(id);
-        if (optionalMessage.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        Message msg = optionalMessage.get();
-        List<ExpenseDto> expenseDtos = msg.getExpenses().stream()
-            .map(exp -> new ExpenseDto(
-                exp.getAmount(),
-                exp.getDescription(),
-                exp.getHashtags().stream()
-                    .map(hashtag -> new HashtagDto(hashtag.getId(), hashtag.getName()))
-                    .toList(),
-                msg.getTimestamp()
-            ))
-            .toList();
-        MessageDto dto = new MessageDto(
-            msg.getId(),
-            msg.getTimestamp(),
-            expenseDtos
-        );
-        return ResponseEntity.ok(dto);
-    }
-
     @GetMapping("/msgs_timestamps")
     public ResponseEntity<List<LocalDateTime>> getAllMessageTimestamps() {
         List<LocalDateTime> timestamps = messageRepository.findAll().stream()
@@ -141,30 +121,19 @@ public class MessageHandler {
         return ResponseEntity.ok(timestamps);
     }
 
+    @GetMapping("/")
+    public ResponseEntity<List<MessageDto>> getAllMessages() {
+        return getResponseFromMessageDtoList(messageRepository.findAll());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<MessageDto> getMessageById(@PathVariable Long id) {
+        return getResponseFromMessageDto(messageRepository.findById(id));
+    }
+
     @GetMapping("/latest")
     public ResponseEntity<MessageDto> getLatestMessage() {
-        Optional<Message> optionalMessage = messageRepository.findLatestMessage();
-        if (optionalMessage.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        Message message = optionalMessage.get();
-        List<ExpenseDto> expenseDtos = message.getExpenses().stream()
-            .map(exp -> new ExpenseDto(
-                exp.getAmount(),
-                exp.getDescription(),
-                exp.getHashtags().stream()
-                    .map(ht -> new HashtagDto(ht.getId(), ht.getName()))
-                    .toList(),
-                message.getTimestamp()
-            ))
-            .toList();
-
-        MessageDto messageDto = new MessageDto(
-            message.getId(),
-            message.getTimestamp(),
-            expenseDtos
-        );
-        return ResponseEntity.ok(messageDto);
+        return getResponseFromMessageDto(messageRepository.findLatestMessage());
     }
 
     @GetMapping("/by-timestamp")
@@ -172,27 +141,7 @@ public class MessageHandler {
         @RequestParam("value") 
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime timestamp) {
         
-        Optional<Message> optionalMessage = messageRepository.findByTimestamp(timestamp);
-        if (optionalMessage.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        Message msg = optionalMessage.get();
-        List<ExpenseDto> expenseDtos = msg.getExpenses().stream()
-            .map(exp -> new ExpenseDto(
-                exp.getAmount(),
-                exp.getDescription(),
-                exp.getHashtags().stream()
-                    .map(hashtag -> new HashtagDto(hashtag.getId(), hashtag.getName()))
-                    .toList(),
-                msg.getTimestamp()
-            ))
-            .toList();
-        MessageDto dto = new MessageDto(
-            msg.getId(),
-            msg.getTimestamp(),
-            expenseDtos
-        );
-        return ResponseEntity.ok(dto);
+        return getResponseFromMessageDto( messageRepository.findByTimestamp(timestamp));
     }
     
     @GetMapping("/by-date-range")
@@ -200,27 +149,6 @@ public class MessageHandler {
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
             @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
 
-        List<Message> messages = messageRepository.findByTimestampBetween(start, end);
-        if (messages.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        List<MessageDto> messageDtos = messages.stream()
-            .sorted(Comparator.comparing(Message::getTimestamp).reversed())
-            .map(message -> {
-                List<ExpenseDto> expenseDtos = message.getExpenses().stream()
-                    .map(exp -> new ExpenseDto(
-                        exp.getAmount(),
-                        exp.getDescription(),
-                        exp.getHashtags().stream()
-                            .map(ht -> new HashtagDto(ht.getId(), ht.getName()))
-                            .toList(),
-                        message.getTimestamp()
-                    ))
-                    .toList();
-                return new MessageDto(message.getId(), message.getTimestamp(), expenseDtos);
-            })
-            .toList();
-        return ResponseEntity.ok(messageDtos);
+        return getResponseFromMessageDtoList(messageRepository.findByTimestampBetween(start, end));
     }
-
 }

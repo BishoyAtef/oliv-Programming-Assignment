@@ -8,7 +8,11 @@ public class MessageDto {
     private LocalDateTime timestamp;
     private List<ExpenseDto> expenses;
 
-    public MessageDto() {}
+    public MessageDto() {
+        this.id = null;
+        this.expenses = null;
+        this.timestamp = null;
+    }
 
     public MessageDto(Long id, LocalDateTime timestamp, List<ExpenseDto> expenses) {
         this.id = id;

@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 import com.expense.tracking.backend.expensetrackingbackend.model.Expense;
 import com.expense.tracking.backend.expensetrackingbackend.model.Hashtag;
-import com.expense.tracking.backend.expensetrackingbackend.dto.MessageTreeDto;
+import com.expense.tracking.backend.expensetrackingbackend.dto.ExpenseTreeDto;
 // @Service
 // public class ExpenseParserService {
 //     class TreeNode {
@@ -198,12 +198,12 @@ public class ExpenseParserService {
             }
         }
 
-        MessageTreeDto toDto() {
-            List<MessageTreeDto> childDtos = children.values().stream()
+        ExpenseTreeDto toDto() {
+            List<ExpenseTreeDto> childDtos = children.values().stream()
                 .map(TreeNode::toDto)
                 .toList();
 
-            return new MessageTreeDto(tag, amount, sum, childDtos.isEmpty() ? null : childDtos);
+            return new ExpenseTreeDto(tag, amount, sum, childDtos.isEmpty() ? null : childDtos);
         }
     }
 
@@ -217,7 +217,7 @@ public class ExpenseParserService {
         }
     }
 
-    public MessageTreeDto parseToTreeDto(List<Expense> expenses) {
+    public ExpenseTreeDto parseToTreeDto(List<Expense> expenses) {
         TreeNode root = new TreeNode("#total");
         List<ExpenseEntry> entries = new ArrayList<>();
         int untaggedTotal = 0;
