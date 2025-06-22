@@ -25,13 +25,21 @@ const CustomPieChart = ({pieChartNavigationPath}) => {
 
   const handleBack = () => {
     if (navigationPath.length > 1) {
-      setNavigationPath(navigationPath.slice(0, -1));
+      setNavigationPath(navigationPath?.slice(0, -1));
     }
   };
 
   useEffect(() => {
     setNavigationPath(pieChartNavigationPath);
   }, [pieChartNavigationPath]);
+
+  if (!navigationPath || navigationPath.length === 0 || !navigationPath[0]?.children?.length) {
+    return (
+      <div className="text-center text-gray-500 mt-10">
+        No data available to display.
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex flex-col items-center space-y-7">
@@ -90,7 +98,7 @@ const CustomPieChart = ({pieChartNavigationPath}) => {
       {currentNode && currentNode.children && (
         <div className="mt-6 rounded-2xl p-6 w-[90%] bg-white shadow-xl border border-gray-200 mb-10">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold text-gray-800">Breakdown of {currentNode.name.slice(1)}</h2>
+            <h2 className="text-xl font-bold text-gray-800">Breakdown of {currentNode.name?.slice(1)}</h2>
             {navigationPath.length > 1 && (
               <button
                 onClick={handleBack}
@@ -107,7 +115,7 @@ const CustomPieChart = ({pieChartNavigationPath}) => {
                 onClick={() => handleClick(null, i)}
                 className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 p-3 rounded-xl transition-all duration-200"
               >
-                <div className="font-semibold">{child.name.slice(1)}</div>
+                <div className="font-semibold">{child.name?.slice(1)}</div>
                 <div>{child.value} EGP</div>
               </li>
             ))}

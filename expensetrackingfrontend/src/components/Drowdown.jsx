@@ -9,7 +9,7 @@ const Dropdown = ({ onSelect }) => {
   const fetchDates = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("/api/api/v1/expense/msgs_timestamps");
+      const response = await axios.get("/api/v1/expense/msgs_timestamps");
       const sortedDates = [...new Set(response.data)].sort((a, b) => b.localeCompare(a));
       setDates(sortedDates);
     } catch (error) {

@@ -19,7 +19,7 @@ const InputBox = () => {
         const trimmedLines = rawLines.map((line) => line.trim().toLowerCase());
         const errors = [];
         const validLines = [];
-        const apiUrl = "/api/api/v1/expense/";
+        const apiUrl = "/api/v1/expense/";
 
         trimmedLines.forEach((line, idx) => {
             if (line === "") return;

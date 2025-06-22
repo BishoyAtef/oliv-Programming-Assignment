@@ -14,12 +14,7 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
-      },
-      // '/expense-tree': {
-      //   target: 'http://localhost:8080/api/v1/expense-tree',
-      //   changeOrigin: true,
-      //   rewrite: (path) => path.replace(/^\/expense-tree/, '')
-      // }
+      }
     }
   }
 })
