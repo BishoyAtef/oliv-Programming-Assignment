@@ -25,7 +25,7 @@ const HomePage = () => {
     try {
       setIsFetching(true);
       const response = await axios.get(url);
-      const root = response.data;
+      const root = response.data.expenseTreeDto;
       setData(root);
       const flattened = flattenTree(root).map((item, index) => ({
         ...item,

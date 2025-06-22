@@ -8,7 +8,7 @@ const CustomNode = ({ node, level = 0 }) => {
         <span className="font-semibold text-gray-900">{node.tag?.slice(1) || ''}</span> — 
         <span className="ml-1 text-gray-800">{node.sum} EGP</span>
         {node.amount > 0 && (
-          <span className="ml-2 text-sm text-gray-600">(other: {node.sum - node.amount} EGP)</span>
+          <span className="ml-2 text-sm text-gray-600">{node.amount == node.sum? `${""}` : `${node.tag?.slice(1)}: ${node.amount} EGP` }</span>
         )}
       </div>
       {hasChildren && (
