@@ -1,0 +1,127 @@
+# Expense Tracking Backend
+
+This is the backend for the **Expense Tracking App**, which parses user-submitted expense messages, extracts hashtags and amounts, groups data hierarchically, and stores it in a relational database using Spring Boot and JPA.
+
+---
+
+## 🔗 GitHub Repository
+
+[https://github.com/BishoyAtef/oliv-Programming-Assignment](https://github.com/BishoyAtef/oliv-Programming-Assignment)
+
+---
+
+## 📦 Features
+
+- Submit multiple expenses in a single message
+- Extract amount and hashtags from free-text descriptions
+- Parse hashtags and amounts using regex
+- Store data relationally: `Messages`, `Expenses`, `Hashtags`
+- Group and aggregate expenses by hashtags (tree structure)
+- Fetch expenses by:
+  - Timestamp
+  - Date range
+  - Message ID
+  - Latest message
+- JSON tree format support for data visualization
+
+---
+
+## 🗃️ Database Structure
+
+| Table    | Description |
+|----------|-------------|
+| `messages` | Represents a single expense message with a timestamp |
+| `expenses` | Individual expenses within a message |
+| `hashtags` | Tags used to categorize expenses |
+| `expense_hashtags` | Join table for `expenses` and `hashtags` (many-to-many) |
+
+---
+
+## 🛠 Tech Stack
+
+- Java 17+
+- Spring Boot 3.x
+- Spring Web
+- Spring Data JPA (Hibernate)
+- H2 / PostgreSQL / MySQL (configurable)
+- Maven
+- Docker & Docker Compose
+
+---
+
+## 🚀 Getting Started
+
+### 🔧 Prerequisites
+
+- JDK 17+
+- Maven
+- Docker & Docker Compose (optional for containerized run)
+
+### 📥 Clone the Repository
+
+```bash
+git clone https://github.com/BishoyAtef/oliv-Programming-Assignment.git
+cd oliv-Programming-Assignment
+
+🧪 Run Locally
+# Build the project
+./mvnw clean package
+
+# Run with Maven
+./mvnw spring-boot:run
+
+Or use Docker Compose:
+
+docker-compose up --build
+
+📮 API Endpoints
+
+📤 POST /api/v1/expense/
+
+Submit one message with multiple expense entries:
+
+json
+[
+  { "expense": "500 @mobil #car #fuel" },
+  { "expense": "400 #car for parking" }
+]
+
+📥 GET /api/v1/expense/
+Return all messages with their grouped expenses.
+
+🕓 GET /api/v1/expense/latest
+Return latest message and its parsed expenses.
+
+📆 GET /api/v1/expense/by-timestamp?value=2024-05-01T10:00:00
+Return all expenses in the message with the given timestamp.
+
+⏳ GET /api/expense/by-date-range?start=...&end=...
+Return messages within the date range.
+
+🧾 GET /api/expense-tree/
+Return hierarchical JSON tree of expenses grouped by hashtags.
+
+🧹 Validation Rules
+Each expense message must:
+
+    Start with a number > 0
+
+    Allow comma format (e.g., 2,500, 4,000)
+
+    Followed by a description
+
+📁 Project Structure
+src/
+├── controller/       → REST endpoints
+├── model/            → JPA entities
+├── dto/              → Data Transfer Objects
+├── repository/       → JPA Repositories
+├── service/          → Parsing and business logic
+└── ExpenseTrackingBackendApplication.java
+
+⚠️ Notes
+    Ensure database is clean between schema changes
+
+    Use .mvnw and mvnw.cmd for portable Maven builds
+
+    Can be easily extended with user authentication, categories, budgets, etc.
