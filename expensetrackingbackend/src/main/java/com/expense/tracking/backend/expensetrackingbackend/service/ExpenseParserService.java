@@ -8,9 +8,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
+
+import com.expense.tracking.backend.expensetrackingbackend.dto.ExpenseTreeDto;
 import com.expense.tracking.backend.expensetrackingbackend.model.Expense;
 import com.expense.tracking.backend.expensetrackingbackend.model.Hashtag;
-import com.expense.tracking.backend.expensetrackingbackend.dto.ExpenseTreeDto;
 
 @Service
 public class ExpenseParserService {
@@ -29,14 +30,6 @@ public class ExpenseParserService {
             children.put(child.tag, child);
         }
 
-        void addExpense(List<String> tags, int amount) {
-            TreeNode current = this;
-            for (String singleTag : tags) {
-                current = current.children.computeIfAbsent(singleTag, TreeNode::new);
-            }
-            current.amount += amount;
-        }
-
         void computeSum() {
             sum = amount;
             for (TreeNode child : children.values()) {
@@ -46,10 +39,7 @@ public class ExpenseParserService {
         }
 
         ExpenseTreeDto toDto() {
-            List<ExpenseTreeDto> childDtos = children.values().stream()
-                .map(TreeNode::toDto)
-                .toList();
-
+            List<ExpenseTreeDto> childDtos = children.values().stream().map(TreeNode::toDto).toList();
             return new ExpenseTreeDto(tag, amount, sum, childDtos.isEmpty() ? null : childDtos);
         }
     }
@@ -64,25 +54,10 @@ public class ExpenseParserService {
         }
     }
 
-    public ExpenseTreeDto parseToTreeDto(List<Expense> expenses) {
-        TreeNode root = new TreeNode("#total");
-        List<ExpenseEntry> entries = new ArrayList<>();
-        int untaggedTotal = 0;
-
-        for (Expense expense : expenses) {
-            int amount = expense.getAmount();
-            List<String> tags = expense.getHashtags().stream().map(Hashtag::getName).toList();
-            if (!tags.isEmpty()) {
-                entries.add(new ExpenseEntry(tags, amount));
-            } else {
-                untaggedTotal += amount;
-            }
-        }
-
+    private void constructExpenseTreeDFS(TreeNode node, List<ExpenseEntry> entries) {
         while (!entries.isEmpty()) {
             Map<String, Integer> tagSums = new LinkedHashMap<>();
             Map<String, Integer> tagFirstSeenIndex = new HashMap<>();
-
             for (int i = 0; i < entries.size(); i++) {
                 ExpenseEntry entry = entries.get(i);
                 for (int j = 0; j < entry.tags.size(); j++) {
@@ -91,7 +66,6 @@ public class ExpenseParserService {
                     tagFirstSeenIndex.putIfAbsent(tag, i * 100 + j);
                 }
             }
-
             List<String> sortedTags = new ArrayList<>(tagSums.keySet());
             sortedTags.sort((a, b) -> {
                 int cmp = Integer.compare(tagSums.get(b), tagSums.get(a));
@@ -100,13 +74,12 @@ public class ExpenseParserService {
                 }
                 return cmp;
             });
-
-            if (sortedTags.isEmpty()) break;
-
+            if (sortedTags.isEmpty()) { 
+                break; 
+            }
             String selectedTag = sortedTags.get(0);
             List<ExpenseEntry> matched = new ArrayList<>();
             List<ExpenseEntry> remaining = new ArrayList<>();
-
             for (ExpenseEntry entry : entries) {
                 if (entry.tags.contains(selectedTag)) {
                     List<String> newTags = new ArrayList<>(entry.tags);
@@ -116,20 +89,33 @@ public class ExpenseParserService {
                     remaining.add(entry);
                 }
             }
-
             TreeNode child = new TreeNode(selectedTag);
             for (ExpenseEntry e : matched) {
-                if (!e.tags.isEmpty()) {
-                    child.addExpense(e.tags, e.amount);
-                } else {
+                if (e.tags.isEmpty()) {
                     child.amount += e.amount;
                 }
             }
-
-            root.addChild(child);
+            node.addChild(child);
             entries = remaining;
+            constructExpenseTreeDFS(child, matched);
         }
+        node.computeSum();
+    }
 
+    public ExpenseTreeDto parseToTreeDto(List<Expense> expenses) {
+        TreeNode root = new TreeNode("#total");
+        List<ExpenseEntry> entries = new ArrayList<>();
+        int untaggedTotal = 0;
+        for (Expense expense : expenses) {
+            int amount = expense.getAmount();
+            List<String> tags = expense.getHashtags().stream().map(Hashtag::getName).toList();
+            if (!tags.isEmpty()) {
+                entries.add(new ExpenseEntry(tags, amount));
+            } else {
+                untaggedTotal += amount;
+            }
+        }
+        constructExpenseTreeDFS(root, entries);
         root.amount += untaggedTotal;
         root.computeSum();
         return root.toDto();
